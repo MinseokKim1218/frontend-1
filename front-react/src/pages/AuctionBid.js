@@ -6,6 +6,8 @@ import { Link as RouterLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
 // material
 import { alpha, styled } from '@mui/material/styles';
+import { confirmAlert } from 'react-confirm-alert';
+
 
 // material
 import {
@@ -31,8 +33,8 @@ import Scrollbar from '../components/Scrollbar';
 import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
 import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
-import { AuctionInputBox } from '../sections/@dashboard/auction';
-// import AuctionRegisterPopover from '../layouts/dashboard/AuctionRegisterPopover';
+import { AuctionBidInputBox } from '../sections/@dashboard/auctionBid';
+
 
 
 // mock
@@ -49,8 +51,8 @@ const TABLE_HEAD = [
   { id: 'cntStudent', label: '수강인원', alignRight: false },
   { id: 'lectCost', label: '강의료', alignRight: false },
   { id: 'auctionStatus', label: '경매상태', alignRight: false },
-  { id: 'bidCnt', label: '입찰수', alignRight: false },
-  { id: 'lowPrice', label: '최저입찰가', alignRight: false },
+  { id: 'lectureBidCnt', label: '입찰수', alignRight: false },
+  { id: 'bidMinPrice', label: '최저입찰가', alignRight: false },
 
 
   { id: '' },
@@ -163,6 +165,23 @@ export default function User() {
   const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
 
 
+  const confirmLectureBidCancel = () => {
+    confirmAlert({
+      title : '입찰취소',
+      message : '입찰을 취소하시겠습니까?',
+      buttons: [
+        {
+          label: '네',
+          onClick: () => {
+            lectureBidCancel();
+          }
+        },
+        {
+          label: '아니오',
+        }
+      ]
+    })
+  }
 
   // const auctions = () => {
 
@@ -193,25 +212,24 @@ export default function User() {
 
 
 
-  const auctionCancel = () => {
+  const lectureBidCancel = () => {
     console.log(info);
     axios({
       method: 'put',
-      url: 'http://localhost:8084/auctions/auctionCancel',
+      url: 'http://localhost:8084/lectureBids/cancelBid',
       data: {
-        lectId: '1',
-        id: '1'
+        auctionId: '1',
+        memberId: 1004
       }
     })
     .catch(err => console.log(err))
   }
 
 
-
-  const searchAuctionList = () => {
-    axios.get('http://localhost:8084/auctions/searchAuctionList')
+  const searchAll = () => {
+    axios.get(`http://localhost:8084/auctions/searchAll`,{})
     .then(res => setInfo(res.data))
-    .catch(err => console.log(err));
+    .catch(err => console.log(err))
   }
 
   useEffect(() => {
@@ -221,6 +239,18 @@ export default function User() {
   }, [])
 
 
+  const auctionBidCancel= () => {
+    console.log(info);
+    axios({
+      method: 'put',
+      url: 'http://localhost:8084/lectureBids/cancelBid',
+      data: {
+        memberId: 1004,
+        auctionId: 1
+      }
+    })
+    .catch(err => console.log(err))
+  }
 
   const isUserNotFound = filteredUsers.length === 0;
 
@@ -248,18 +278,17 @@ export default function User() {
           <AuctionRegisterPopover />
           </Stack> */}
           <div>
-          <AuctionInputBox
+          <AuctionBidInputBox
               isOpenRegister={openRegister}
               onOpenRegister={handleOpenRegister}
               onCloseRegister={handleCloseRegister}
-              onAfterSaveAuction={searchAuctionList}
               info
             />
 
 
-          <Button variant="contained" onClick={auctionCancel} component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-            경매취소
-            </Button>
+          <Button variant="contained" onClick={confirmLectureBidCancel} component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+          입찰취소
+              </Button>
 
           </div>
 
@@ -284,7 +313,7 @@ export default function User() {
                   {info.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                     // const { id, lectName, lectStatus,  startAuctionDate, endAuctionDate} = row;
 
-                    const { lectId, lectTypeNm, lectName, startAuctionDate,  endAuctionDate, cntStudent, lectCost, auctionStatus, bidCnt, lowPrice} = row;
+                    const { lectId, lectTypeNm, lectName, startAuctionDate,  endAuctionDate, cntStudent, lectCost, auctionStatus, lectureBidCnt, bidMinPrice} = row;
 
 
                     const isItemSelected = selected.indexOf(lectId) !== -1;
@@ -316,8 +345,8 @@ export default function User() {
                           </Label>
                         </TableCell>
 
-                        <TableCell align="left">{bidCnt}</TableCell>
-                        <TableCell align="left">{lowPrice}</TableCell>
+                        <TableCell align="left">{lectureBidCnt}</TableCell>
+                        <TableCell align="left">{bidMinPrice}</TableCell>
 
 
                       </TableRow>

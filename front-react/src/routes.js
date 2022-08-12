@@ -10,6 +10,7 @@ import NotFound from './pages/Page404';
 import Register from './pages/Register';
 import Products from './pages/Products';
 import Auction from './pages/Auction';
+import AuctionBid from './pages/AuctionBid';
 import DashboardApp from './pages/DashboardApp';
 
 // ----------------------------------------------------------------------
@@ -25,6 +26,8 @@ export default function Router() {
         { path: 'products', element: <Products /> },
         { path: 'blog', element: <Blog /> },
         { path: 'auction', element: <Auction /> },
+        { path: 'auctionBid', element: <AuctionBid /> },
+
       ],
     },
     {

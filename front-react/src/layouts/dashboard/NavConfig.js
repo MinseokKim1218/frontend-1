@@ -36,7 +36,11 @@ const navConfig = [
     path: '/dashboard/auction',
     icon: getIcon('eva:shopping-bag-fill'),
   },
-
+  {
+    title: '경매입찰',
+    path: '/dashboard/auctionBid',
+    icon: getIcon('eva:shopping-bag-fill'),
+  },
   {
     title: '강의결재',
     path: '/dashboard/blog',
