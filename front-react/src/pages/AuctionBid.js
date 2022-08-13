@@ -226,14 +226,14 @@ export default function User() {
   }
 
 
-  const searchAll = () => {
-    axios.get(`http://localhost:8084/auctions/searchAll`,{})
+  const searchAuctionList = () => {
+    axios.get(`http://localhost:8084/auctions/searchAuctionLectureBidList`,{})
     .then(res => setInfo(res.data))
     .catch(err => console.log(err))
   }
 
   useEffect(() => {
-    axios.get('http://localhost:8084/auctions/searchAuctionList')
+    axios.get('http://localhost:8084/auctions/searchAuctionLectureBidList')
     .then(res => setInfo(res.data))
     .catch(err => console.log(err));
   }, [])
@@ -270,7 +270,7 @@ export default function User() {
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            경매조회
+            경매입찰 리스트
           </Typography>
 
 {/*
@@ -282,7 +282,9 @@ export default function User() {
               isOpenRegister={openRegister}
               onOpenRegister={handleOpenRegister}
               onCloseRegister={handleCloseRegister}
-              info
+              onAfterSaveAuction={searchAuctionList}
+              selectedLectinfo={info}
+              selectedAuctionId={selected}
             />
 
 
@@ -313,22 +315,22 @@ export default function User() {
                   {info.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                     // const { id, lectName, lectStatus,  startAuctionDate, endAuctionDate} = row;
 
-                    const { lectId, lectTypeNm, lectName, startAuctionDate,  endAuctionDate, cntStudent, lectCost, auctionStatus, lectureBidCnt, bidMinPrice} = row;
+                    const { auctionId, lectId, lectTypeNm, lectName, startAuctionDate,  endAuctionDate, cntStudent, lectCost, auctionStatus, lectureBidCnt, bidMinPrice} = row;
 
 
-                    const isItemSelected = selected.indexOf(lectId) !== -1;
+                    const isItemSelected = selected.indexOf(auctionId) !== -1;
 
                     return (
                       <TableRow
                         hover
-                        key={lectId}
+                        key={auctionId}
                         tabIndex={-1}
                         role="checkbox"
                         selected={isItemSelected}
                         aria-checked={isItemSelected}
                       >
                         <TableCell padding="checkbox">
-                          <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, lectId)} />
+                          <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, auctionId)} />
                         </TableCell>
 
                         <TableCell align="left">{lectTypeNm}</TableCell>

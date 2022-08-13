@@ -79,16 +79,17 @@ AuctionInputBox.propTypes = {
 
 
 
-export default function AuctionInputBox({ isOpenRegister, onOpenRegister, onCloseRegister, info , onAfterSaveAuction}) {
+export default function AuctionInputBox({ isOpenRegister, onOpenRegister, onCloseRegister, onAfterSaveAuction, selectedLectinfo, selectedlectId}) {
 
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [showPassword, setShowPassword] = useState(false);
 
-
   // 경매등록 확인창
   const confirmPopup = () => {
     onCloseRegister(); // 드로우를 닫는다.
+    console.log(selectedlectId);
+    console.log(selectedLectinfo);
     confirmAlert({
       title : '경매등록 확인',
       message : '경매등록을 계속 하시겠습니까?',
@@ -123,12 +124,12 @@ export default function AuctionInputBox({ isOpenRegister, onOpenRegister, onClos
 
 
   const auctionRegister = () => {
-    console.log(info);
+    console.log(selectedLectinfo);
     axios({
       method: 'put',
       url: 'http://localhost:8084/auctions/auctionRegister',
       data: {
-        lectId: '1',
+        lectId: selectedlectId[0],
         startAuctionDate: startDate,
         endAuctionDate: endDate,
       }

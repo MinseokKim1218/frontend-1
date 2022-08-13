@@ -25,6 +25,7 @@ import {
   Modal
 } from '@mui/material';
 // components
+import { confirmAlert } from 'react-confirm-alert'
 import Page from '../components/Page';
 import Label from '../components/Label';
 import Scrollbar from '../components/Scrollbar';
@@ -32,6 +33,8 @@ import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
 import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
 import { AuctionInputBox } from '../sections/@dashboard/auction';
+
+
 // import AuctionRegisterPopover from '../layouts/dashboard/AuctionRegisterPopover';
 
 
@@ -158,6 +161,42 @@ export default function User() {
     setFilterName(event.target.value);
   };
 
+  // 경매등록 확인창
+  const confirmPopup = () => {
+    // console.log(selectedlectId);
+    // console.log(selectedLectinfo);
+    confirmAlert({
+      title : '경매취소 확인',
+      message : '경매취소를 계속 하시겠습니까?',
+      buttons: [
+        {
+          label: '네',
+          onClick: () => {
+            auctionCancel();
+          }
+        },
+        {
+          label: '아니오',
+        }
+      ]
+    })
+  }
+  // 경매등록 확인창
+  const alertPopup = (inputMessage) => {
+    confirmAlert({
+      title : '확인',
+      message : inputMessage,
+      buttons: [
+        {
+          label: '확인',
+          onClick: () => searchAuctionList()
+
+        }
+      ]
+    })
+  }
+
+
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
   const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
@@ -194,15 +233,19 @@ export default function User() {
 
 
   const auctionCancel = () => {
+    alert(selected);
+    console.log(selected);
     console.log(info);
+
     axios({
       method: 'put',
       url: 'http://localhost:8084/auctions/auctionCancel',
       data: {
-        lectId: '1',
-        id: '1'
+        lectId: selected[0], // selected에 lectId를 담고 있다.
+        // id: '1'
       }
     })
+    .then(res => alertPopup('경매취소확인'))
     .catch(err => console.log(err))
   }
 
@@ -248,17 +291,18 @@ export default function User() {
           <AuctionRegisterPopover />
           </Stack> */}
           <div>
-          <AuctionInputBox
+            <AuctionInputBox
               isOpenRegister={openRegister}
               onOpenRegister={handleOpenRegister}
               onCloseRegister={handleCloseRegister}
               onAfterSaveAuction={searchAuctionList}
-              info
+              selectedLectinfo={info}
+              selectedlectId={selected}
             />
 
 
-          <Button variant="contained" onClick={auctionCancel} component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-            경매취소
+            <Button variant="contained" onClick={confirmPopup} component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+              경매취소
             </Button>
 
           </div>

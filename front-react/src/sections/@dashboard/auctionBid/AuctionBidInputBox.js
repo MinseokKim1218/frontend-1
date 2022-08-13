@@ -77,13 +77,14 @@ AuctionBidInputBox.propTypes = {
 
 
 
-export default function AuctionBidInputBox({ isOpenRegister, onOpenRegister, onCloseRegister, info }) {
+export default function AuctionBidInputBox({ isOpenRegister, onOpenRegister, onCloseRegister, onAfterSaveAuction, selectedLectinfo, selectedAuctionId }) {
 
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [bidPrice, setBidPrice] = useState(0);
 
   const confirmPopup = () => {
+    alert(selectedAuctionId);
     onCloseRegister();
     confirmAlert({
       title : '입찰확인',
@@ -103,17 +104,33 @@ export default function AuctionBidInputBox({ isOpenRegister, onOpenRegister, onC
     })
   }
 
+  // 경매등록 확인창
+  const alertPopup = (inputMessage) => {
+    confirmAlert({
+      title : '확인',
+      message : inputMessage,
+      buttons: [
+        {
+          label: '확인',
+          onClick: () => onAfterSaveAuction()
+
+        }
+      ]
+    })
+  }
+
   const auctionBidRegister = () => {
-    console.log(info);
+    console.log(selectedLectinfo);
     axios({
       method: 'put',
       url: 'http://localhost:8084/lectureBids/registerBid',
       data: {
-        auctionId: 1,
+        auctionId: selectedAuctionId[0],
         price: bidPrice,
         memberId: 1004
       }
     })
+    .then(res => alertPopup('입찰확인'))
     .catch(err => console.log(err))
   }
 
