@@ -33,7 +33,9 @@ import Scrollbar from '../components/Scrollbar';
 import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
 import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
-import { AuctionBidInputBox } from '../sections/@dashboard/auctionBid';
+import { AuctionBidInputBox, AuctionBidSuccessBox } from '../sections/@dashboard/auctionBid';
+
+
 
 
 
@@ -53,6 +55,10 @@ const TABLE_HEAD = [
   { id: 'auctionStatus', label: '경매상태', alignRight: false },
   { id: 'lectureBidCnt', label: '입찰수', alignRight: false },
   { id: 'bidMinPrice', label: '최저입찰가', alignRight: false },
+  { id: 'bidDetailList', label: '입찰상세', alignRight: false },
+  { id: 'bidSuccessBtn', label: '낙찰', alignRight: false },
+
+
 
 
   { id: '' },
@@ -103,11 +109,33 @@ export default function User() {
     setOpenRegister(false);
   };
 
+
+
+
+  // 낙찰팝업 OPEN/CLOSE
+  const [openBidSuccessRegister, setOpenBidSuccessRegister] = useState(false);
+
+  const handleOpenBidSuccessRegister = () => {
+    setOpenBidSuccessRegister(true);
+  };
+
+  const handleCloseBidSuccessRegister = () => {
+    setOpenBidSuccessRegister(false);
+  };
+
+
+
   const [page, setPage] = useState(0);
 
   const [order, setOrder] = useState('asc');
 
   const [selected, setSelected] = useState([]);
+
+  const [auctionId, setAuctionId] = useState([]);
+
+  const [clickedAuctionId, setClickedAuctionId] = useState([]);
+
+
 
   const [orderBy, setOrderBy] = useState('name');
 
@@ -117,11 +145,35 @@ export default function User() {
 
   const [info, setInfo] = useState([])
 
+  const [detailInfo, setDetailInfo] = useState([])
+
+
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
   };
+
+
+  const onBidDetailButtonClick = (state, rowInfo, column, instance) => {
+    handleOpenBidSuccessRegister();
+    return {
+        onClick: e => {
+            console.log('A Td Element was clicked!')
+            console.log('it produced this event:', e)
+            console.log('It was in this column:', column)
+            console.log('It was in this row:', rowInfo)
+            console.log('It was in this table instance:', instance)
+          }
+      }
+  }
+
+
+  const onBidSuccessButtonClick = (event, auctionId) => {
+
+    searchBidDetailList(auctionId);
+
+}
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
@@ -213,6 +265,7 @@ export default function User() {
 
 
   const lectureBidCancel = () => {
+    alert(111);
     console.log(info);
     axios({
       method: 'put',
@@ -225,6 +278,28 @@ export default function User() {
     .catch(err => console.log(err))
   }
 
+
+  const searchBidDetailList = (auctionId) => {
+    axios(
+
+      {
+        url: "http://localhost:8084/lectureBids/searchLectureBidList/",
+        method: "get",
+        params: {"auctionId": auctionId}
+      }
+    )
+    .then(
+      res => setDetailInfo(res.data),
+      // console.log(5555),
+      // console.log(detailInfo),
+      setClickedAuctionId(auctionId),
+      handleOpenBidSuccessRegister()
+
+
+    )
+    .catch(err => console.log(err));
+
+  }
 
   const searchAuctionList = () => {
     axios.get(`http://localhost:8084/auctions/searchAuctionLectureBidList`,{})
@@ -287,6 +362,16 @@ export default function User() {
               selectedAuctionId={selected}
             />
 
+          <AuctionBidSuccessBox
+            isOpenBidSuccessRegister={openBidSuccessRegister}
+            onOpenBidSuccessRegister={handleOpenBidSuccessRegister}
+            onCloseBidSuccessRegister={handleCloseBidSuccessRegister}
+            onAfterSaveAuction={searchAuctionList}
+            selectedLectinfo={info}
+            bidDetailInfo={detailInfo}
+            selectedAuctionId={clickedAuctionId}
+          />
+
 
           <Button variant="contained" onClick={confirmLectureBidCancel} component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
           입찰취소
@@ -334,7 +419,7 @@ export default function User() {
                         </TableCell>
 
                         <TableCell align="left">{lectTypeNm}</TableCell>
-                        <TableCell align="left">{lectName}</TableCell>
+                        <TableCell align="left">{lectName} </TableCell>
                         <TableCell align="left">{startAuctionDate}</TableCell>
                         <TableCell align="left">{endAuctionDate}</TableCell>
                         <TableCell align="left">{cntStudent}</TableCell>
@@ -349,6 +434,13 @@ export default function User() {
 
                         <TableCell align="left">{lectureBidCnt}</TableCell>
                         <TableCell align="left">{bidMinPrice}</TableCell>
+                        <TableCell align="left"><Button onClick={() => onBidDetailButtonClick(auctionId)}>입찰상세</Button></TableCell>
+                        <TableCell align="left"><Button onClick={(event) => onBidSuccessButtonClick(event, auctionId)}>낙찰하기</Button></TableCell>
+
+
+
+
+
 
 
                       </TableRow>
