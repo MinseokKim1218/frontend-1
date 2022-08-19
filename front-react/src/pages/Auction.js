@@ -181,20 +181,20 @@ export default function User() {
       ]
     })
   }
-  // 경매등록 확인창
-  const alertPopup = (inputMessage) => {
-    confirmAlert({
-      title : '확인',
-      message : inputMessage,
-      buttons: [
-        {
-          label: '확인',
-          onClick: () => searchAuctionList()
+    // 경매등록 확인창
+    const alertPopup = (inputMessage) => {
+      confirmAlert({
+        title : '확인',
+        message : inputMessage,
+        buttons: [
+          {
+            label: '확인',
+            onClick: () => searchAuctionList()
 
-        }
-      ]
-    })
-  }
+          }
+        ]
+      })
+    }
 
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;

@@ -121,6 +121,7 @@ export default function AuctionBidInputBox({ isOpenRegister, onOpenRegister, onC
 
   const auctionBidRegister = () => {
     console.log(selectedLectinfo);
+    alert(124);
     axios({
       method: 'put',
       url: 'http://localhost:8084/lectureBids/registerBid',
