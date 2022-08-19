@@ -13,7 +13,8 @@
     "lint:fix": "eslint --fix --ext .js,.jsx ./src",
     "clear-all": "rm -rf build node_modules",
     "re-start": "rm -rf build node_modules && yarn install && yarn start",
-    "re-build": "rm -rf build node_modules && yarn install && yarn build"
+    "re-build": "rm -rf build node_modules && yarn install && yarn build",
+    "local": "env-cmd -f env.local react-scripts start"
   },
   "eslintConfig": {
     "extends": [
@@ -51,6 +52,7 @@
     "axios": "^0.27.2",
     "change-case": "^4.1.2",
     "date-fns": "^2.28.0",
+    "env-cmd": "^10.1.0",
     "history": "^5.3.0",
     "lodash": "^4.17.21",
     "numeral": "^2.0.6",
