@@ -42,7 +42,12 @@ const navConfig = [
     icon: getIcon('eva:shopping-bag-fill'),
   },
   {
-    title: '강의결재',
+    title: '강의분류',
+    path: '/dashboard/lecturecategory',
+    icon: getIcon('ant-design:tag-filled'),
+  },
+  {
+    title: '강의결제',
     path: '/dashboard/blog',
     icon: getIcon('eva:file-text-fill'),
   },
