@@ -87,6 +87,8 @@ export default function AuctionInputBox({ isOpenRegister, onOpenRegister, onClos
 
   // 경매등록 확인창
   const confirmPopup = () => {
+    
+    console.log(selectedlectId);
     onCloseRegister(); // 드로우를 닫는다.
     console.log(selectedlectId);
     console.log(selectedLectinfo);
@@ -129,7 +131,7 @@ export default function AuctionInputBox({ isOpenRegister, onOpenRegister, onClos
       method: 'put',
       url: 'http://localhost:8084/auctions/auctionRegister',
       data: {
-        lectId: selectedlectId[0],
+        lectIds: selectedlectId,
         startAuctionDate: startDate,
         endAuctionDate: endDate,
       }

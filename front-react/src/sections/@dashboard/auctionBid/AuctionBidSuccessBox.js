@@ -218,7 +218,6 @@ export default function AuctionBidSuccessBox({ isOpenBidSuccessRegister, onOpenB
   }
 
   const searchBidDetailList = (auctionId) => {
-    alert(auctionId);
     axios(
 
       {
@@ -293,7 +292,6 @@ export default function AuctionBidSuccessBox({ isOpenBidSuccessRegister, onOpenB
     console.log(selectedAuctionId);
     console.log(selected[0]);
 
-    alert(selectedAuctionId);
     axios({
       method: 'put',
       url: 'http://localhost:8084/lectureBids/successLectureBid',

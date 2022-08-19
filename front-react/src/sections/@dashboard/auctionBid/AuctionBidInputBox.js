@@ -84,7 +84,8 @@ export default function AuctionBidInputBox({ isOpenRegister, onOpenRegister, onC
   const [bidPrice, setBidPrice] = useState(0);
 
   const confirmPopup = () => {
-    alert(selectedAuctionId);
+
+
     onCloseRegister();
     confirmAlert({
       title : '입찰확인',
@@ -93,7 +94,6 @@ export default function AuctionBidInputBox({ isOpenRegister, onOpenRegister, onC
         {
           label: '네',
           onClick: () => {
-            alert(bidPrice);
             auctionBidRegister();
           }
         },
@@ -121,12 +121,11 @@ export default function AuctionBidInputBox({ isOpenRegister, onOpenRegister, onC
 
   const auctionBidRegister = () => {
     console.log(selectedLectinfo);
-    alert(124);
     axios({
       method: 'put',
       url: 'http://localhost:8084/lectureBids/registerBid',
       data: {
-        auctionId: selectedAuctionId[0],
+        auctionIds: selectedAuctionId,
         price: bidPrice,
         memberId: 1004
       }
