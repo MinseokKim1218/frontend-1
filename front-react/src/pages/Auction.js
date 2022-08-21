@@ -6,7 +6,8 @@ import { Link as RouterLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
 // material
 import { alpha, styled } from '@mui/material/styles';
-
+import moment from 'moment';
+ 
 // material
 import {
   Card,
@@ -52,8 +53,8 @@ const TABLE_HEAD = [
   { id: 'cntStudent', label: '수강인원', alignRight: false },
   { id: 'lectCost', label: '강의료', alignRight: false },
   { id: 'auctionStatus', label: '경매상태', alignRight: false },
-  { id: 'bidCnt', label: '입찰수', alignRight: false },
-  { id: 'lowPrice', label: '최저입찰가', alignRight: false },
+  // { id: 'bidCnt', label: '입찰수', alignRight: false },
+  // { id: 'lowPrice', label: '최저입찰가', alignRight: false },
 
 
   { id: '' },
@@ -92,11 +93,16 @@ function applySortFilter(array, comparator, query) {
 
 
 
+
 export default function User() {
 
   const [openRegister, setOpenRegister] = useState(false);
 
   const handleOpenRegister = () => {
+    if(selected.length === 0) {
+      alertPopup('경매등록할 강의를 선택하여 주세요.');
+      return;
+    }
     setOpenRegister(true);
   };
 
@@ -161,10 +167,15 @@ export default function User() {
     setFilterName(event.target.value);
   };
 
-  // 경매등록 확인창
+  // 경매취소 확인창
   const confirmPopup = () => {
-    // console.log(selectedlectId);
-    // console.log(selectedLectinfo);
+    console.log(selected);
+
+
+    if(selected.length === 0) {
+      alertPopup('취소할 경매내역을 선택하여 주세요.');
+      return;
+    }
     confirmAlert({
       title : '경매취소 확인',
       message : '경매취소를 계속 하시겠습니까?',
@@ -195,6 +206,8 @@ export default function User() {
         ]
       })
     }
+
+    
 
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
@@ -233,15 +246,12 @@ export default function User() {
 
 
   const auctionCancel = () => {
-    alert(selected);
-    console.log(selected);
-    console.log(info);
 
     axios({
       method: 'put',
       url: 'http://localhost:8084/auctions/auctionCancel',
       data: {
-        lectId: selected[0], // selected에 lectId를 담고 있다.
+        lectIds: selected, // selected에 lectId를 담고 있다.
         // id: '1'
       }
     })
@@ -275,6 +285,14 @@ export default function User() {
   const closeModal = () => {
     setModalVisible(false)
   }
+
+  const dateToString = (rawDate) => {
+      
+    if(rawDate !== null){
+        return moment(rawDate).format('YYYY-MM-DD')
+      }
+  }
+
 
 
 
@@ -328,7 +346,7 @@ export default function User() {
                   {info.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                     // const { id, lectName, lectStatus,  startAuctionDate, endAuctionDate} = row;
 
-                    const { lectId, lectTypeNm, lectName, startAuctionDate,  endAuctionDate, cntStudent, lectCost, auctionStatus, bidCnt, lowPrice} = row;
+                    const { lectId, lectTypeNm, lectName, startAuctionDate,  endAuctionDate, cntStudent, lectCost, auctionStatus} = row;
 
 
                     const isItemSelected = selected.indexOf(lectId) !== -1;
@@ -348,8 +366,8 @@ export default function User() {
 
                         <TableCell align="left">{lectTypeNm}</TableCell>
                         <TableCell align="left">{lectName}</TableCell>
-                        <TableCell align="left">{startAuctionDate}</TableCell>
-                        <TableCell align="left">{endAuctionDate}</TableCell>
+                        <TableCell align="left">{dateToString(startAuctionDate)}</TableCell>
+                        <TableCell align="left">{dateToString(endAuctionDate)}</TableCell>
                         <TableCell align="left">{cntStudent}</TableCell>
                         <TableCell align="left">{lectCost}</TableCell>
                         {/* <TableCell align="left">{auctionStatus}</TableCell> */}
@@ -360,8 +378,8 @@ export default function User() {
                           </Label>
                         </TableCell>
 
-                        <TableCell align="left">{bidCnt}</TableCell>
-                        <TableCell align="left">{lowPrice}</TableCell>
+                        {/* <TableCell align="left">{bidCnt}</TableCell>
+                        <TableCell align="left">{lowPrice}</TableCell> */}
 
 
                       </TableRow>

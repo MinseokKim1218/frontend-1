@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 // material
 import { alpha, styled } from '@mui/material/styles';
 import { confirmAlert } from 'react-confirm-alert';
+import moment from 'moment';
 
 
 // material
@@ -102,12 +103,32 @@ export default function User() {
   const [openRegister, setOpenRegister] = useState(false);
 
   const handleOpenRegister = () => {
+    if(selected.length === 0) {
+      alertPopup('입찰할 경매내역을 선택하여 주세요.');
+      return;
+    }
     setOpenRegister(true);
   };
 
   const handleCloseRegister = () => {
     setOpenRegister(false);
   };
+
+  // 경매등록 확인창
+  const alertPopup = (inputMessage) => {
+    confirmAlert({
+      title : '확인',
+      message : inputMessage,
+      buttons: [
+        {
+          label: '확인',
+          onClick: () => searchAuctionList()
+
+        }
+      ]
+    })
+  }
+
 
 
 
@@ -218,6 +239,12 @@ export default function User() {
 
 
   const confirmLectureBidCancel = () => {
+    
+    if(selected.length === 0) {
+      alertPopup('입찰취소할 경매내역을 선택하여 주세요.');
+      return;
+    }
+    
     confirmAlert({
       title : '입찰취소',
       message : '입찰을 취소하시겠습니까?',
@@ -265,20 +292,20 @@ export default function User() {
 
 
   const lectureBidCancel = () => {
-    alert(111);
-    console.log(info);
+    console.log(selected);
     axios({
       method: 'put',
       url: 'http://localhost:8084/lectureBids/cancelBid',
       data: {
-        auctionId: '1',
+        auctionIds: selected,
         memberId: 1004
       }
     })
+    .then(res => alertPopup('입찰취소확인'))
     .catch(err => console.log(err))
   }
 
-
+ 
   const searchBidDetailList = (auctionId) => {
     axios(
 
@@ -336,6 +363,13 @@ export default function User() {
 
   const closeModal = () => {
     setModalVisible(false)
+  }
+
+  const dateToString = (rawDate) => {
+      
+    if(rawDate !== null){
+        return moment(rawDate).format('YYYY-MM-DD')
+      }
   }
 
 
@@ -420,10 +454,10 @@ export default function User() {
 
                         <TableCell align="left">{lectTypeNm}</TableCell>
                         <TableCell align="left">{lectName} </TableCell>
-                        <TableCell align="left">{startAuctionDate}</TableCell>
-                        <TableCell align="left">{endAuctionDate}</TableCell>
-                        <TableCell align="left">{cntStudent}</TableCell>
-                        <TableCell align="left">{lectCost}</TableCell>
+                        <TableCell align="left">{dateToString(startAuctionDate)}</TableCell>
+                        <TableCell align="left">{moment(endAuctionDate).format('YYYY-MM-DD')}</TableCell>
+                        <TableCell align="right">{cntStudent}</TableCell>
+                        <TableCell align="right">{lectCost}</TableCell>
                         {/* <TableCell align="left">{auctionStatus}</TableCell> */}
 
                          <TableCell align="left">
@@ -432,8 +466,8 @@ export default function User() {
                           </Label>
                         </TableCell>
 
-                        <TableCell align="left">{lectureBidCnt}</TableCell>
-                        <TableCell align="left">{bidMinPrice}</TableCell>
+                        <TableCell align="right">{lectureBidCnt}</TableCell>
+                        <TableCell align="right">{bidMinPrice}</TableCell>
                         <TableCell align="left"><Button onClick={() => onBidDetailButtonClick(auctionId)}>입찰상세</Button></TableCell>
                         <TableCell align="left"><Button onClick={(event) => onBidSuccessButtonClick(event, auctionId)}>낙찰하기</Button></TableCell>
 
