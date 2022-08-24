@@ -185,7 +185,7 @@ export default function AuctionInputBox({ isOpenRegister, onOpenRegister, onClos
               <Typography variant="subtitle1" gutterBottom>
                 경매종료일자
               </Typography>
-
+              
               <DatePicker selected={endDate} onChange={date => setEndDate(date)} />
 
             </div>
@@ -194,8 +194,9 @@ export default function AuctionInputBox({ isOpenRegister, onOpenRegister, onClos
               <Button variant="contained" onClick={confirmPopup} component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
                   등록
               </Button>
-
+              <br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
             </div>
+
 
 
           </Stack>
