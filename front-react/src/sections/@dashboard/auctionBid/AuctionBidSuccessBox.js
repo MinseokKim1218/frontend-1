@@ -140,8 +140,7 @@ const TABLE_HEAD = [
 ];
 
 
-export default function AuctionBidSuccessBox({ isOpenBidSuccessRegister, onOpenBidSuccessRegister, onCloseBidSuccessRegister, onAfterSaveAuction, selectedLectinfo, bidDetailInfo, selectedAuctionId }) {
-  console.log('444');
+export default function AuctionBidSuccessBox({ isOpenBidSuccessRegister, onOpenBidSuccessRegister, onCloseBidSuccessRegister, onAfterSaveAuction, selectedLectinfo, bidDetailInfo, selectedAuctionId, successBidFlag }) {
   console.log(selectedAuctionId);
   console.log(bidDetailInfo);
   const [page, setPage] = useState(0);
@@ -218,7 +217,6 @@ export default function AuctionBidSuccessBox({ isOpenBidSuccessRegister, onOpenB
   }
 
   const searchBidDetailList = (auctionId) => {
-    alert(auctionId);
     axios(
 
       {
@@ -256,6 +254,18 @@ export default function AuctionBidSuccessBox({ isOpenBidSuccessRegister, onOpenB
   const [bidPrice, setBidPrice] = useState(0);
   const confirmPopup = () => {
     onCloseBidSuccessRegister();
+
+    if(selected.length === 0) {
+      alertPopup('낙찰할 입찰내역을 선택해주세요.', 'fail');
+
+      return;
+    }
+
+    if(selected.length > 1) {
+      alertPopup('1건만 선택하여 낙찰을 진행해주세요.', 'fail');
+      return;
+    }
+
     confirmAlert({
       title : '낙찰확인',
       message : '낙찰을 계속 진행 하시겠습니까?',
@@ -274,26 +284,45 @@ export default function AuctionBidSuccessBox({ isOpenBidSuccessRegister, onOpenB
   }
 
   // 경매등록 확인창
-  const alertPopup = (inputMessage) => {
-    confirmAlert({
-      title : '확인',
-      message : inputMessage,
-      buttons: [
-        {
-          label: '확인',
-          onClick: () => onAfterSaveAuction()
+  const alertPopup = (inputMessage, flag) => {
+    if(inputMessage === 'BID_SUCCESS'){
+      inputMessage = '낙찰이 이미 진행되었습니다.'
+    }
+    if(flag==='fail'){
+      confirmAlert({
+        title : '확인',
+        message : inputMessage,
+        buttons: [
+          {
+            label: '확인',
+            onClick: () => onOpenBidSuccessRegister()
+  
+          }
+        ]
+      })
 
-        }
-      ]
-    })
+    }else{
+      confirmAlert({
+        title : '확인',
+        message : inputMessage,
+        buttons: [
+          {
+            label: '확인',
+            onClick: () => onAfterSaveAuction()
+  
+          }
+        ]
+      })
+    }
+
+
+    
   }
 
   const successLectureBid = () => {
-    console.log(292);
     console.log(selectedAuctionId);
     console.log(selected[0]);
 
-    alert(selectedAuctionId);
     axios({
       method: 'put',
       url: 'http://localhost:8084/lectureBids/successLectureBid',
@@ -302,7 +331,7 @@ export default function AuctionBidSuccessBox({ isOpenBidSuccessRegister, onOpenB
         auctionId: selectedAuctionId
       }
     })
-    .then(res => alertPopup('낙찰확인'))
+    .then(res => alertPopup(res.data))
     .catch(err => console.log(err))
   }
 
@@ -403,9 +432,9 @@ export default function AuctionBidSuccessBox({ isOpenBidSuccessRegister, onOpenB
           <Stack spacing={3} sx={{ p: 5 }}>
 
           <div>
-            <Button variant="contained" onClick={confirmPopup} component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+            {successBidFlag && <Button variant="contained" onClick={confirmPopup} component={RouterLink} to="#" startIcon={<Iconify icon="ic:baseline-gavel" />}>
                 낙찰요청
-            </Button>
+            </Button>}
 
           </div>
           </Stack>

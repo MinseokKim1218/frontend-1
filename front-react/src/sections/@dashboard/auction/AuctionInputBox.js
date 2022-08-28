@@ -85,11 +85,55 @@ export default function AuctionInputBox({ isOpenRegister, onOpenRegister, onClos
   const [endDate, setEndDate] = useState(new Date());
   const [showPassword, setShowPassword] = useState(false);
 
+
+  const bidRegisterOpen = () => {
+
+
+    for(let i=0; i<selectedlectId.length; i+=1){
+      for(let j = 0; j<selectedLectinfo.length; j+=1){
+        if(selectedlectId[i] === selectedLectinfo[j].lectId){
+          if(selectedLectinfo[j].auctionStatus==='BID_SUCCESS'){
+            alertPopup('경매 낙찰이 완료된 건은 등록할 수가 없습니다.');
+            return;
+          }
+          if(selectedLectinfo[j].auctionStatus==='AUCTION'){
+            alertPopup('경매 등록이 된 건은 다시 등록할 수가 없습니다.');
+            return;
+          }
+        }
+      }
+    }
+    onOpenRegister();
+
+  }
+
   // 경매등록 확인창
   const confirmPopup = () => {
+    
+    console.log(selectedlectId);
     onCloseRegister(); // 드로우를 닫는다.
     console.log(selectedlectId);
     console.log(selectedLectinfo);
+
+    console.log(startDate);
+    console.log(endDate);
+
+
+    if(startDate === '' || startDate === null){
+      alertPopup('경매시작일자를 입력해주세요.', true);
+      return;
+
+    }
+    if(endDate === '' || endDate === null){
+      alertPopup('경매종료일자를 입력해주세요.', true);
+      return;
+
+    }
+    if(startDate > endDate){
+      alertPopup('경매시작일자와 종료일자를 확인해주세요.', true);
+      return;
+
+    }
     confirmAlert({
       title : '경매등록 확인',
       message : '경매등록을 계속 하시겠습니까?',
@@ -107,35 +151,78 @@ export default function AuctionInputBox({ isOpenRegister, onOpenRegister, onClos
     })
   }
   // 경매등록 확인창
-  const alertPopup = (inputMessage) => {
-    confirmAlert({
-      title : '확인',
-      message : inputMessage,
-      buttons: [
-        {
-          label: '확인',
-          onClick: () => onAfterSaveAuction()
+  const alertPopup = (inputMessage, openFlag) => {
+    if(inputMessage === 'AUCTION'){
+      inputMessage = '경매가 이미 등록된 건은 등록할 수가 없습니다.'
+    }else if(inputMessage === 'BID_SUCCESS'){
+      inputMessage = '경매낙찰이 완료된 건은 등록할 수가 없습니다'
+    }
+    if(openFlag === true){
+      confirmAlert({
+        title : '확인',
+        message : inputMessage,
+        buttons: [
+          {
+            label: '확인',
+            onClick: () => onOpenRegister()
+  
+          }
+        ]
+      })
+    }else{
+      confirmAlert({
+        title : '확인',
+        message : inputMessage,
+        buttons: [
+          {
+            label: '확인',
+            onClick: () => onAfterSaveAuction()
+  
+          }
+        ]
+      })
 
-        }
-      ]
-    })
+    }
+    
   }
 
+  function auctionRegisterCheck (auctionId) {
+    // 날짜를 체크한다. 유효한지
+    // 경매상태가 AUCTION 이 맞는지..
 
+    axios(
+      {
+        url: "http://localhost:8084/auctions/searchAuction",
+        method: "get",
+        params: {"auctionId": auctionId}
+      }
+    )
+    .then(
+      res => res.data
+    )
+    .catch(err => console.log(err));
+
+
+  }
 
   const auctionRegister = () => {
-    console.log(selectedLectinfo);
+
+
+
+
     axios({
       method: 'put',
       url: 'http://localhost:8084/auctions/auctionRegister',
       data: {
-        lectId: selectedlectId[0],
+        lectIds: selectedlectId,
         startAuctionDate: startDate,
         endAuctionDate: endDate,
       }
     })
-    .then(res => alertPopup('경매등록확인'))
+    .then(res => alertPopup(res.data))
     .catch(err => console.log(err))
+
+    
   }
 
 
@@ -146,7 +233,7 @@ export default function AuctionInputBox({ isOpenRegister, onOpenRegister, onClos
       {/* <Button disableRipple color="inherit" endIcon={<Iconify icon="ic:round-filter-list" />} onClick={onOpenFilter}>
         Filters&nbsp;
       </Button> */}
-      <Button variant="contained" onClick={onOpenRegister} component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+      <Button variant="contained" onClick={bidRegisterOpen} component={RouterLink} to="#" startIcon={<Iconify icon="ic:baseline-gavel" />}>
             경매등록
       </Button>
 
@@ -183,17 +270,18 @@ export default function AuctionInputBox({ isOpenRegister, onOpenRegister, onClos
               <Typography variant="subtitle1" gutterBottom>
                 경매종료일자
               </Typography>
-
+              
               <DatePicker selected={endDate} onChange={date => setEndDate(date)} />
 
             </div>
 
             <div>
-              <Button variant="contained" onClick={confirmPopup} component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+              <Button variant="contained" onClick={confirmPopup} component={RouterLink} to="#" startIcon={<Iconify icon="ic:outline-edit" />}>
                   등록
               </Button>
-
+              <br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
             </div>
+
 
 
           </Stack>

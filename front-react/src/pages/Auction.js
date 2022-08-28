@@ -6,7 +6,9 @@ import { Link as RouterLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
 // material
 import { alpha, styled } from '@mui/material/styles';
+import moment from 'moment';
 
+ 
 // material
 import {
   Card,
@@ -32,7 +34,11 @@ import Scrollbar from '../components/Scrollbar';
 import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
 import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
-import { AuctionInputBox } from '../sections/@dashboard/auction';
+import Searchbar from '../layouts/dashboard/Searchbar';
+import DashboardNavbar from '../layouts/dashboard/DashboardNavbar';
+import { AuctionListToolbar, AuctionInputBox } from '../sections/@dashboard/auction';
+
+
 
 
 // import AuctionRegisterPopover from '../layouts/dashboard/AuctionRegisterPopover';
@@ -52,8 +58,8 @@ const TABLE_HEAD = [
   { id: 'cntStudent', label: '수강인원', alignRight: false },
   { id: 'lectCost', label: '강의료', alignRight: false },
   { id: 'auctionStatus', label: '경매상태', alignRight: false },
-  { id: 'bidCnt', label: '입찰수', alignRight: false },
-  { id: 'lowPrice', label: '최저입찰가', alignRight: false },
+  // { id: 'bidCnt', label: '입찰수', alignRight: false },
+  // { id: 'lowPrice', label: '최저입찰가', alignRight: false },
 
 
   { id: '' },
@@ -84,19 +90,38 @@ function applySortFilter(array, comparator, query) {
     if (order !== 0) return order;
     return a[1] - b[1];
   });
+  console.log(array);
   if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    return filter(array, (auction) => auction.lectName.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
 }
 
 
 
-export default function User() {
+
+// function getInfo(){
+//   return info;
+// }
+
+
+// export function auctionTemp(){
+
+//   {_handleCloseRegister()};
+// }
+
+
+
+
+export default function Auction() {
 
   const [openRegister, setOpenRegister] = useState(false);
 
   const handleOpenRegister = () => {
+    if(selected.length === 0) {
+      alertPopup('경매등록할 강의를 선택하여 주세요.');
+      return;
+    }
     setOpenRegister(true);
   };
 
@@ -118,6 +143,8 @@ export default function User() {
 
   const [info, setInfo] = useState([])
 
+
+
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -126,12 +153,14 @@ export default function User() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
+      const newSelecteds = info.map((n) => n.lectId);
       setSelected(newSelecteds);
       return;
     }
     setSelected([]);
   };
+
+
 
   const handleClick = (event, name) => {
     const selectedIndex = selected.indexOf(name);
@@ -161,10 +190,34 @@ export default function User() {
     setFilterName(event.target.value);
   };
 
-  // 경매등록 확인창
+
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - info.length) : 0;
+
+  const filteredUsers = applySortFilter(info, getComparator(order, orderBy), filterName);
+  
+  const isUserNotFound = filteredUsers.length === 0;
+
+  // 경매취소 확인창
   const confirmPopup = () => {
-    // console.log(selectedlectId);
-    // console.log(selectedLectinfo);
+    console.log(selected);
+
+    if(selected.length === 0) {
+      alertPopup('취소할 경매내역을 선택하여 주세요.');
+      return;
+    }
+
+    for(let i=0; i<selected.length; i+=1){
+      for(let j = 0; j<info.length; j+=1){
+        if(selected[i] === info[j].lectId){
+          if(info[j].auctionStatus==='' || info[j].auctionStatus===null){
+            alertPopup('경매가 등록되어 있지 않습니다.');
+            return;
+          }
+        }
+      }
+    }
+
+
     confirmAlert({
       title : '경매취소 확인',
       message : '경매취소를 계속 하시겠습니까?',
@@ -183,6 +236,9 @@ export default function User() {
   }
     // 경매등록 확인창
     const alertPopup = (inputMessage) => {
+      if(inputMessage === 'BID_SUCCESS'){
+        inputMessage = '경매 낙찰이 완료된 경매는 취소할 수가 없습니다.'
+      }
       confirmAlert({
         title : '확인',
         message : inputMessage,
@@ -196,10 +252,10 @@ export default function User() {
       })
     }
 
+    
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
 
-  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
+
 
 
 
@@ -233,19 +289,16 @@ export default function User() {
 
 
   const auctionCancel = () => {
-    alert(selected);
-    console.log(selected);
-    console.log(info);
 
     axios({
       method: 'put',
       url: 'http://localhost:8084/auctions/auctionCancel',
       data: {
-        lectId: selected[0], // selected에 lectId를 담고 있다.
+        lectIds: selected, // selected에 lectId를 담고 있다.
         // id: '1'
       }
     })
-    .then(res => alertPopup('경매취소확인'))
+    .then(res => alertPopup(res.data))
     .catch(err => console.log(err))
   }
 
@@ -258,14 +311,28 @@ export default function User() {
   }
 
   useEffect(() => {
-    axios.get('http://localhost:8084/auctions/searchAuctionList')
-    .then(res => setInfo(res.data))
+    
+    axios(
+
+      {
+        url: 'http://localhost:8084/auctions/searchAuctionList',
+        method: "get"
+      }
+    )
+    .then(
+      res => setInfo(res.data)
+    )
     .catch(err => console.log(err));
+
+
+
   }, [])
 
 
 
-  const isUserNotFound = filteredUsers.length === 0;
+ 
+
+
 
   // console.log(info)
 
@@ -276,15 +343,42 @@ export default function User() {
     setModalVisible(false)
   }
 
+  const dateToString = (rawDate) => {
+      
+    if(rawDate !== null){
+        return moment(rawDate).format('YYYY-MM-DD')
+      }
+  }
 
+
+  const [open, setOpen] = useState(false);
+
+  const searchAuction = () => {
+  }
 
   return (
+
+    
+
+    
     <Page title="User">
+
+
+
+
       <Container>
+
+
+    
+        
+
+
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
             경매조회
           </Typography>
+          
+          <DashboardNavbar onOpenSidebar={() => setOpen(false)} />
 
 {/*
           <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1.5 }}>
@@ -300,8 +394,8 @@ export default function User() {
               selectedlectId={selected}
             />
 
-
-            <Button variant="contained" onClick={confirmPopup} component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+            {" "}     
+            <Button variant="outlined" onClick={confirmPopup} component={RouterLink} to="#" startIcon={<Iconify icon="ic:outline-delete" />}>
               경매취소
             </Button>
 
@@ -310,7 +404,7 @@ export default function User() {
         </Stack>
 
         <Card>
-          {/* <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} /> */}
+          <AuctionListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>
@@ -319,16 +413,16 @@ export default function User() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={USERLIST.length}
+                  rowCount={info.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
-                  {info.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                     // const { id, lectName, lectStatus,  startAuctionDate, endAuctionDate} = row;
 
-                    const { lectId, lectTypeNm, lectName, startAuctionDate,  endAuctionDate, cntStudent, lectCost, auctionStatus, bidCnt, lowPrice} = row;
+                    const { lectId, lectTypeNm, lectName, startAuctionDate,  endAuctionDate, cntStudent, lectCost, auctionStatus} = row;
 
 
                     const isItemSelected = selected.indexOf(lectId) !== -1;
@@ -347,21 +441,25 @@ export default function User() {
                         </TableCell>
 
                         <TableCell align="left">{lectTypeNm}</TableCell>
+
+   
                         <TableCell align="left">{lectName}</TableCell>
-                        <TableCell align="left">{startAuctionDate}</TableCell>
-                        <TableCell align="left">{endAuctionDate}</TableCell>
+
+                        {/* <TableCell align="left">{lectName}</TableCell> */}
+                        <TableCell align="left">{dateToString(startAuctionDate)}</TableCell>
+                        <TableCell align="left">{dateToString(endAuctionDate)}</TableCell>
                         <TableCell align="left">{cntStudent}</TableCell>
                         <TableCell align="left">{lectCost}</TableCell>
                         {/* <TableCell align="left">{auctionStatus}</TableCell> */}
 
                          <TableCell align="left">
-                          <Label variant="ghost" color={(auctionStatus === 'banned' && 'error') || 'success'}>
+                          <Label variant="ghost" color={((auctionStatus === 'AFTER_AUCTION' || auctionStatus === 'BEFORE_AUCTION'|| auctionStatus === 'BID_SUCCESS')&& 'error') || 'success'}>
                            {auctionStatus}
                           </Label>
                         </TableCell>
 
-                        <TableCell align="left">{bidCnt}</TableCell>
-                        <TableCell align="left">{lowPrice}</TableCell>
+                        {/* <TableCell align="left">{bidCnt}</TableCell>
+                        <TableCell align="left">{lowPrice}</TableCell> */}
 
 
                       </TableRow>
@@ -390,7 +488,7 @@ export default function User() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={USERLIST.length}
+            count={info.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -398,6 +496,11 @@ export default function User() {
           />
         </Card>
       </Container>
+      
     </Page>
+    
   );
+
 }
+
+
