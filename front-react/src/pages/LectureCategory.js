@@ -1,15 +1,14 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { confirmAlert } from 'react-confirm-alert'
+import { filter } from 'lodash';
 
 // material
 import {
   Card,
   Table,
   Stack,
-  Avatar,
   Button,
-  Checkbox,
   TableRow,
   TableBody,
   TableCell,
@@ -17,7 +16,6 @@ import {
   Typography,
   TableContainer,
   TablePagination,
-  TextField,
 } from '@mui/material';
 
 // components
@@ -26,30 +24,55 @@ import Scrollbar from '../components/Scrollbar';
 
 // sections
 import { RegisterCategoryForm } from '../sections/lecturecategory';
-import { CategoryModifyInputBox, CategoryListHead } from '../sections/@dashboard/lecturecategory';
+import { CategoryModifyInputBox, CategoryListHead, CategoryListToolbar } from '../sections/@dashboard/lecturecategory';
 
 // -------------------------------------------------------------------
 const TABLE_HEAD = [
-  { id: 'categoryId', label: '분류ID', alignRight: false },
-  { id: 'categoryName', label: '분류명', alignRight: false },
+  { id: 'categoryId', label: '분류ID', align: 'center' },
+  { id: 'categoryName', label: '분류명', align: 'left' },
   { id: 'modifybtn' },
   { id: 'deletebtn' }
 ];
 // ------------------------------------------------------------------
 
+function descendingComparator(a, b, orderBy) {
+  if (b[orderBy] < a[orderBy]) {
+    return -1;
+  }
+  if (b[orderBy] > a[orderBy]) {
+    return 1;
+  }
+  return 0;
+}
+
+function getComparator(order, orderBy) {
+  return order === 'desc'
+    ? (a, b) => descendingComparator(a, b, orderBy)
+    : (a, b) => -descendingComparator(a, b, orderBy);
+}
+
+function applySortFilter(array, comparator, query) {
+  const stabilizedThis = array.map((el, index) => [el, index]);
+  stabilizedThis.sort((a, b) => {
+    const order = comparator(a[0], b[0]);
+    if (order !== 0) return order;
+    return a[1] - b[1];
+  });
+  if (query) {
+    return filter(array, (_category) => _category.categoryName.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+  }
+  return stabilizedThis.map((el) => el[0]);
+}
+
+
 export default function LectureCategory() {
 
   const [page, setPage] = useState(0);
-
   const [order, setOrder] = useState('asc');
-
-  const [selected, setSelected] = useState([]);
-
   const [orderBy, setOrderBy] = useState('categoryId');
-
+  const [filterValue, setFilterValue] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(7);
-
-  const [info, setInfo] = useState([]);
+  const [CATEGORYLIST, setCATEGORYLIST] = useState([]);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -66,34 +89,16 @@ export default function LectureCategory() {
     setPage(0);
   };
 
-  const handleCheckboxClick = (event, categoryId) => {
-    const selectedIndex = selected.indexOf(categoryId);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, categoryId);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-    }
-    setSelected(newSelected);
+  const handleFilterByValue = (event) => {
+    setFilterValue(event.target.value);
   };
 
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = info.map((n) => n.categoryId);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
+  const filteredCategories = applySortFilter(CATEGORYLIST, getComparator(order, orderBy), filterValue);
 
   // 전체 카테고리 조회
   useEffect(() => {
     axios.get(`${process.env.REACT_APP_BACK_CATEGORY_URL}/lectureCategories/searchAll`)
-    .then(res => setInfo(res.data))
+    .then(res => setCATEGORYLIST(res.data))
     .catch(err => console.log(err));
   }, []);
 
@@ -155,6 +160,7 @@ export default function LectureCategory() {
     .catch(err => console.log(err));
   };
 
+
   return (
     <Page title="Lecture Category">
       <Container>
@@ -175,30 +181,29 @@ export default function LectureCategory() {
         <RegisterCategoryForm />
 
         <Card style={{width: '80%', margin: 'auto'}}>
+          <CategoryListToolbar filterValue={filterValue} onFilterValue={handleFilterByValue} />
+
           <Scrollbar>
             <TableContainer width="60%" margin="auto">
-              <Table >
+              <Table>
                 <colgroup>
-                  <col width="10%" />
                   <col width="20%" />
                   <col width="50%" />
                   <col width="10%" />
                   <col width="10%" />
                 </colgroup>
+
                 <CategoryListHead
                   order={order}
                   orderBy={orderBy}
+                  rowCount={CATEGORYLIST.length}
                   headLabel={TABLE_HEAD}
-                  rowCount={info.length}
-                  numSelected={selected.length}
                   onRequestSort={handleRequestSort}
-                  onSelectAllClick={handleSelectAllClick}
-
                 />
+
                 <TableBody>
-                  {info.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                  {filteredCategories.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                     const { categoryId, categoryName } = row;
-                    const isItemSelected = selected.indexOf(categoryId) !== -1;
 
                     return (
                       <TableRow
@@ -206,13 +211,8 @@ export default function LectureCategory() {
                         key={categoryId}
                         tabIndex={-1}
                         role="checkbox"
-                        selected={isItemSelected}
-                        aria-checked={isItemSelected}
                       >
-                        <TableCell align="center" padding="checkbox">
-                          <Checkbox checked={isItemSelected} onChange={(event) => handleCheckboxClick(event, categoryId)} />
-                        </TableCell>
-                        <TableCell align="left">{categoryId}</TableCell>
+                        <TableCell align="center">{categoryId}</TableCell>
                         <TableCell align="left">{categoryName}</TableCell>
                         <TableCell >
                           <Button onClick={()=>handleModifyOpen(categoryId, categoryName)}>수정</Button>
@@ -233,7 +233,7 @@ export default function LectureCategory() {
           <TablePagination
             rowsPerPageOptions={[7, 10]}
             component="div"
-            count={info.length}
+            count={CATEGORYLIST.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
