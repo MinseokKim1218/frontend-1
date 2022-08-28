@@ -3,11 +3,11 @@
 ### 수정 시, 참고부분
 
 
-router.js : 11라인에 추가될 화면 경로 import 추가
-27라인에 추가되는 path, element 추가
+routes.js : 17라인에 추가될 화면 경로 import 추가 / 
+34라인에 추가되는 path, element 추가
 
 NavConfig.js : 왼쪽메뉴에 화면 등록
-44라인에 추가되는 화면 정보 추가
+추가되는 화면 정보 추가
 
 src/pages 에 추가되는 화면 js 추가해서 작성 (ex : Auction.js)
 테이블(그리드)조회일 경우에는 users.js 화면을 복사해서 사용
