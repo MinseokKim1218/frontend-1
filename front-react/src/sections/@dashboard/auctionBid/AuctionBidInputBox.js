@@ -6,6 +6,9 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
+import * as Yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
+
 
 // material
 import {
@@ -32,7 +35,6 @@ import Iconify from '../../../components/Iconify';
 import Scrollbar from '../../../components/Scrollbar';
 import { ColorManyPicker } from '../../../components/color-utils';
 import { RHFTextField } from '../../../components/hook-form';
-
 
 
 
@@ -83,6 +85,38 @@ export default function AuctionBidInputBox({ isOpenRegister, onOpenRegister, onC
   const [endDate, setEndDate] = useState(new Date());
   const [bidPrice, setBidPrice] = useState(0);
 
+  const bidRegisterOpen = () => {
+
+    console.log(131313);;
+    console.log(selectedLectinfo);
+    console.log(selectedAuctionId);
+    for(let i=0; i<selectedAuctionId.length; i+=1){
+      console.log(i);
+      for(let j = 0; j<selectedLectinfo.length; j+=1){
+        console.log(j);
+        if(selectedAuctionId[i] === selectedLectinfo[j].auctionId){
+            console.log(selectedLectinfo[j].auctionStatus);
+          if(selectedLectinfo[j].auctionStatus==='BID_SUCCESS'){
+            alertPopup('경매 낙찰이 완료된 건은 입찰할 수가 없습니다.');
+            return;
+          }
+          if(selectedLectinfo[j].auctionStatus==='AFTER_AUCTION'){
+            alertPopup('종료된 경매는 입찰할 수가 없습니다.');
+
+            return;
+          }
+          if(selectedLectinfo[j].auctionStatus==='BEFORE_AUCTION'){
+            alertPopup('시작되지 않은 경매는 입찰할 수가 없습니다.');
+
+            return;
+          }
+        }
+      }
+    }
+    onOpenRegister();
+
+  }
+
   const confirmPopup = () => {
 
 
@@ -106,6 +140,23 @@ export default function AuctionBidInputBox({ isOpenRegister, onOpenRegister, onC
 
   // 경매등록 확인창
   const alertPopup = (inputMessage) => {
+    if(inputMessage==='CANCEL'){
+      inputMessage = '취소된 경매는 입찰 할 수가 없습니다.'
+    }else if(inputMessage==='BEFORE_AUCTION'){
+      inputMessage = '경매가 아직 시작되지 않았습니다.'
+
+    }else if(inputMessage==='AFTER_AUCTION'){
+      inputMessage = '경매가 이미 종료 되었습니다.'
+
+    }else if(inputMessage==='BID_SUCCESS'){
+      inputMessage = '경매 낙찰이 이미 완료되었습니다.'
+
+    }
+    // else{
+    //   inputMessage = '입찰이 완료되었습니다.'
+
+    // }
+
     confirmAlert({
       title : '확인',
       message : inputMessage,
@@ -130,13 +181,18 @@ export default function AuctionBidInputBox({ isOpenRegister, onOpenRegister, onC
         memberId: 1004
       }
     })
-    .then(res => alertPopup('입찰확인'))
+    .then(res => alertPopup(res.data)
+          
+    )
+       
     .catch(err => console.log(err))
   }
 
 
 
-
+  const RegisterCategorySchema = Yup.object().shape({
+    categoryName: Yup.string().required('CategoryName is required'),
+  });
 
 
 
@@ -146,7 +202,7 @@ export default function AuctionBidInputBox({ isOpenRegister, onOpenRegister, onC
       {/* <Button disableRipple color="inherit" endIcon={<Iconify icon="ic:round-filter-list" />} onClick={onOpenFilter}>
         Filters&nbsp;
       </Button> */}
-      <Button variant="contained" onClick={onOpenRegister} component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+      <Button variant="contained" onClick={bidRegisterOpen} component={RouterLink} to="#" startIcon={<Iconify icon="ic:outline-edit" />}>
             입찰
       </Button>
 
@@ -179,13 +235,16 @@ export default function AuctionBidInputBox({ isOpenRegister, onOpenRegister, onC
             </div>
             <div>
               <TextField id="bidPrice" label="Outlined" variant="outlined" onChange={(event) => setBidPrice(event.target.value)}/>
+
+              {/* <RHFTextField name="categoryName" label="분류명"/> */}
+
             </div>
 
 
 
 
             <div>
-              <Button variant="contained" onClick={confirmPopup} component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+              <Button variant="contained" onClick={confirmPopup} component={RouterLink} to="#" startIcon={<Iconify icon="ic:outline-edit" />}>
                   입찰가 등록
               </Button>
 
