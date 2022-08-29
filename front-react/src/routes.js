@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import NotFound from './pages/Page404';
 import Register from './pages/Register';
 import Products from './pages/Products';
+import LectureRegister from './pages/LectureRegister';
 import Auction from './pages/Auction';
 import AuctionBid from './pages/AuctionBid';
 import DashboardApp from './pages/DashboardApp';
@@ -25,6 +26,7 @@ export default function Router() {
         { path: 'app', element: <DashboardApp /> },
         { path: 'user', element: <User /> },
         { path: 'products', element: <Products /> },
+        { path: 'lectureregister', element: <LectureRegister /> },
         { path: 'blog', element: <Blog /> },
         { path: 'auction', element: <Auction /> },
         { path: 'auctionBid', element: <AuctionBid /> },
